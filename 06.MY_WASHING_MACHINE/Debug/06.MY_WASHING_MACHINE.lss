@@ -2451,9 +2451,9 @@ void led_all_off(void)
     10f6:	08 95       	ret
 
 000010f8 <__vector_16>:
-250개의 펄스를 count(1ms) 하면 이곳으로 자동진입한다.
-ISR은 가능한 짧게 작성한다.
-*/
+uint32_t rinse_time = 0;
+uint32_t spin_time = 0;
+volatile int motor_direction = 1;
 volatile int run = 0;
 
 ISR(TIMER0_OVF_vect) {
@@ -2511,9 +2511,9 @@ ISR(TIMER0_OVF_vect) {
     1176:	18 95       	reti
 
 00001178 <init_timer0>:
-	0.004MHz * 256 ==> 0.001024sec ==> 1.024ms
-	0.004MHz * 250 ==> 0.001sec ==> 1ms
-*/
+		washing_machine_main();
+    }
+}
 
 void init_timer0(void) {
 	TCNT0 = 6; // TCNT0 6~256 : 250개 펄스 count
@@ -2561,7 +2561,7 @@ int main(void)
     11a4:	90 93 c2 04 	sts	0x04C2, r25	; 0x8004c2 <__iob+0x3>
     11a8:	80 93 c1 04 	sts	0x04C1, r24	; 0x8004c1 <__iob+0x2>
     11ac:	78 94       	sei
-	sei(); // 전역(대문) interrupt 허용
+	sei();
     11ae:	6d d2       	rcall	.+1242   	; 0x168a <washing_machine_main>
     while (1) {
 		washing_machine_main();
@@ -3163,7 +3163,7 @@ void play_washing(int mode) {
     15ce:	08 95       	ret
 
 000015d0 <run_machine>:
-		
+	
 }
 
 
