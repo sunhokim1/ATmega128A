@@ -384,7 +384,7 @@ int main(void)
 	init_uart0();
  21c:	36 d1       	rcall	.+620    	; 0x48a <init_uart0>
  21e:	22 d0       	rcall	.+68     	; 0x264 <init_motor_driver>
-		init_motor_driver();
+	init_motor_driver();
  220:	09 d0       	rcall	.+18     	; 0x234 <init_timer3_pwm>
  222:	80 e0       	ldi	r24, 0x00	; 0
 	init_timer3_pwm();
