@@ -1,13 +1,13 @@
 Archive member included to satisfy reference by file (symbol)
 
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodsi4.o)
-                              main.o (__udivmodsi4)
+                              fnd.o (__udivmodsi4)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
                               C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega128a/avr51/crtatmega128a.o (exit)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_copy_data.o)
-                              main.o (__do_copy_data)
+                              fnd.o (__do_copy_data)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_clear_bss.o)
-                              main.o (__do_clear_bss)
+                              fnd.o (__do_clear_bss)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(iob.o)
                               main.o (__iob)
 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(printf.o)
@@ -34,6 +34,36 @@ Discarded input sections
 
  .data          0x00000000        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega128a/avr51/crtatmega128a.o
  .bss           0x00000000        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega128a/avr51/crtatmega128a.o
+ .text          0x00000000        0x0 fnd.o
+ .data          0x00000000        0x0 fnd.o
+ .bss           0x00000000        0x0 fnd.o
+ .text.min_sec_clock
+                0x00000000       0x26 fnd.o
+ .text.init_fnd
+                0x00000000        0xe fnd.o
+ .rodata        0x00000000        0xb fnd.o
+ .text.find_display_1st
+                0x00000000      0x154 fnd.o
+ .text.find_display_2nd
+                0x00000000      0x15c fnd.o
+ .bss.digit_select.1781
+                0x00000000        0x2 fnd.o
+ .bss.digit_select.1770
+                0x00000000        0x2 fnd.o
+ .bss.dot_display
+                0x00000000        0x4 fnd.o
+ .bss.sec_count
+                0x00000000        0x4 fnd.o
+ .debug_info    0x00000000      0x1ae fnd.o
+ .debug_abbrev  0x00000000       0xe8 fnd.o
+ .debug_loc     0x00000000      0x230 fnd.o
+ .debug_aranges
+                0x00000000       0x38 fnd.o
+ .debug_ranges  0x00000000       0x28 fnd.o
+ .debug_line    0x00000000      0x1c7 fnd.o
+ .debug_str     0x00000000      0x1e1 fnd.o
+ .comment       0x00000000       0x31 fnd.o
+ .debug_frame   0x00000000       0x84 fnd.o
  .text          0x00000000        0x0 main.o
  .data          0x00000000        0x0 main.o
  .bss           0x00000000        0x0 main.o
@@ -140,6 +170,7 @@ Linker script and memory map
 
 Address of section .data set to 0x800100
 LOAD C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/gcc/dev/atmega128a/avr51/crtatmega128a.o
+LOAD fnd.o
 LOAD main.o
 START GROUP
 LOAD c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libm.a

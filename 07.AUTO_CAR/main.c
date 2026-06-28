@@ -14,42 +14,24 @@
 #include "button.h"
 #include "ultrasonic.h"
 
+
 volatile uint32_t ms_count = 0; // volatile 최적화 방지
-volatile 
-/*
-ISR (Interrupt Service Routine) : 인터럽트 처리 함수 ISR로 시작
-TIMER0_OVF_vect : Timer 0 Overflow INT가 발생이 되면 이곳으로 진입한다.
-250개의 펄스를 count(1ms) 하면 이곳으로 자동진입한다.
-ISR은 가능한 짧게 작성한다.
-*/
-extern uint32_t sec_count;
-volatile int ms = 0;
+volatile uint32_t sec_count = 0;
 volatile int is_auto = 0;
-extern uint32_t dot_display;
+volatile uint8_t dot_display = 0;
+volatile uint32_t wt_count = 0;
+int func_state = MANUAL_MODE;
 
-ISR(TIMER0_OVF_vect) {
-	TCNT0 = 6;
-	  if(is_auto)
-	  {
-		  ms_count++;
-
-		  if(1000 < ms_count)
-		  {
-			  sec_count++;
-			  ms_count=0;
-			  dot_display = !dot_display;
-		  }
-
-	  }
-}
-
+extern void fnd_display();
 void init_timer0(void);
 
 extern void init_led(void);
 extern int led_main(void);
 extern void init_ultrasonic(void);
 extern void led_flower_off(void);
-extern void ultrasonic_processing(volatile int *flag, volatile int pin);
+extern void ultrasonic_processing_l(void);
+extern void ultrasonic_processing_c(void);
+extern void ultrasonic_processing_r(void);
 extern void make_trigger(volatile int pin);
 extern void init_uart0(void);
 extern void init_uart1(void);
@@ -62,12 +44,12 @@ extern void backward(int speed);
 extern void turn_left(int speed);
 extern void turn_right(int speed);
 extern void stop(void);
-extern volatile int flag_l;
-extern volatile int flag_c;
-extern volatile int flag_r;
-extern volatile uint16_t ultrasonic_distance_l;
-extern volatile uint16_t ultrasonic_distance_c;
-extern volatile uint16_t ultrasonic_distance_r;
+volatile int flag_l = 0;
+volatile int flag_c = 0;
+volatile int flag_r = 0;
+volatile uint16_t ultrasonic_distance_l = 0;
+volatile uint16_t ultrasonic_distance_c = 0;
+volatile uint16_t ultrasonic_distance_r = 0;
 int is_block_left = 0;
 int is_block_center = 0;
 int is_block_right = 0;
@@ -75,15 +57,21 @@ extern void init_fnd(void);
 extern void init_timer1_pwm(void);
 extern void init_button(void);
 extern void init_motor_driver(void);
+extern int get_button(int button_num, int button_pin);
 void manual_mode(void);
 void auto_mode(void);
 void auto_mode_check(void);
-void distance_check(void);
-
+void distance_check(int i);
+void play_clock(void);
 FILE OUTPUT = FDEV_SETUP_STREAM(UART0_transmit, NULL, _FDEV_SETUP_WRITE);
 
+ISR(TIMER0_OVF_vect) {
+	TCNT0 = 6;
+	ms_count++;
+	wt_count++;
+}
 
-int func_state = MANUAL_MODE;
+
 void (*pfunc[])()= {
 	manual_mode,
 	auto_mode,
@@ -120,16 +108,15 @@ void manual_mode(void){
 }
 
 void auto_mode(void) {
-	printf("left, center, right : %d, %d, %d\n", is_block_left, is_block_center, is_block_right);
-	if (is_block_left == 1 && is_block_center == 1 && is_block_right == 0)
-		turn_right(700);
-	else if (is_block_left == 0 && is_block_center == 1 && is_block_right == 1)
-		turn_left(700);
-	else if (is_block_center == 0)
-		forward(500);
-	else if (is_block_center == 1)
+	if(is_block_left == 1 && is_block_center == 1 && is_block_right == 1)
 		backward(500);
-	
+	else if (is_block_center == 1) {
+		if (ultrasonic_distance_l >= ultrasonic_distance_r)
+			turn_left(700);
+		else if (ultrasonic_distance_l < ultrasonic_distance_r)
+			turn_right(700);
+	}else if (is_block_center == 0)
+		forward(500);
 }
 
 void auto_mode_check(void) {
@@ -138,47 +125,59 @@ void auto_mode_check(void) {
 
 void distance_calc(int i) {
 	if (i == 0)
-		ultrasonic_processing(&flag_l, TRIG_PIN_L);
+		ultrasonic_processing_l();
 	else if (i == 1)
-		ultrasonic_processing(&flag_c, TRIG_PIN_C);
+		ultrasonic_processing_c();
 	else if (i == 2)
-		ultrasonic_processing(&flag_r, TRIG_PIN_R);
+		ultrasonic_processing_r();
 }
 
-void distance_check(void) {
-	is_block_left   = (ultrasonic_distance_l <= 20);
-	is_block_center = (ultrasonic_distance_c <= 20);
-	is_block_right  = (ultrasonic_distance_r <= 20);
+void distance_check(int i)
+{
+	 printf("L=%d C=%d R=%d\r\n",
+	 ultrasonic_distance_l / 58,
+	 ultrasonic_distance_c / 58,
+	 ultrasonic_distance_r / 58);
+	 
+	if (i == 0 )
+		is_block_left = (ultrasonic_distance_l <= 15 * 58);
+
+	else if (i == 1)
+		is_block_center = (ultrasonic_distance_c <= 30 * 58);
+
+	else if (i == 2)
+		is_block_right = (ultrasonic_distance_r <= 15 * 58);
 }
 
 
 
 int main(void) {
 	init_uart0();
-	stdout = &OUTPUT;
+	init_uart1();
 	init_led();
 	init_button();
 	init_timer0();
 	init_fnd();
-	init_uart1();
 	init_ultrasonic();
 	init_timer1_pwm();
 	init_motor_driver();
-	
 
-	
+stdout = &OUTPUT;
 	sei(); // 전역(대문) interrupt 허용
 	int i = 0;
+	
     while (1) {
+		fnd_display();
 		if (get_button(BUTTON0, BUTTON0PIN)) {
 			func_state = !func_state;
-			if (func_state == MANUAL_MODE)
+			if (func_state == MANUAL_MODE) {
 				stop();
+			}
 		}
 		if (func_state == AUTO_MODE) {
-			is_auto = 1;
-			distance_calc(i);
-			distance_check();
+			
+			 distance_calc(i);
+			 distance_check(i);
 			i = (i + 1) % 3;
 		}
 		pfunc[func_state]();
@@ -199,6 +198,12 @@ int main(void) {
 	0.004MHz * 256 ==> 0.001024sec ==> 1.024ms
 	0.004MHz * 250 ==> 0.001sec ==> 1ms
 */
+
+void play_clock()
+{
+	
+	
+}
 
 void init_timer0(void) {
 	TCNT0 = 6; // TCNT0 6~256 : 250개 펄스 count

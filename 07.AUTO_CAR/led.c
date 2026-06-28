@@ -67,12 +67,6 @@ void led_shift_left_on(void) {
 	if (ms_count >= 100) {
 		ms_count = 0;
 		*(unsigned char *)0x3b = 0x01 << i;
-		
-		//if ((i = (i + 1) % 8) == 0) {
-			
-				//func_state = (func_state + 1) % FUNC_SU;
-				//led_all_off();
-		//}
 		i = (i + 1) % 8;
 	}
 	

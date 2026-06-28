@@ -7,6 +7,7 @@
 
 #include "pwm.h"
 #include "button.h"
+#include <util/atomic.h>
 
 extern int get_button(int button_num, int button_pin);
 
@@ -40,6 +41,7 @@ extern int get_button(int button_num, int button_pin);
 #define MOTOR_RIGHT_PORT_DDR 6 // OC1B
 #define MOTOR_DIRECTION_PORT PORTF
 #define MOTOR_DIRECTION_PORT_DDR DDRF
+#define MOTOR_MASK ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3))
 void init_motor_driver(void);
 void init_timer1_pwm(void);
 void forward(int speed);
@@ -48,6 +50,14 @@ void turn_left(int speed);
 void turn_right(int speed);
 void stop(void);
 
+
+static void motor_set_direction(uint8_t value)
+{
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		MOTOR_DIRECTION_PORT =
+		(MOTOR_DIRECTION_PORT & ~MOTOR_MASK) | (value & MOTOR_MASK);
+	}
+}
 
 void init_timer1_pwm(void) {
 		
@@ -81,53 +91,35 @@ void init_timer1_pwm(void) {
 	PE7 : IN2
 */
 void init_motor_driver(void) {
-	// 1. 출력 모드로 설정
-	MOTOR_PWM_DDR &= ~(1 << 5 | 1 << 6); //0으로 초기화 하고 시작
-	MOTOR_PWM_DDR |= 1 << MOTOR_LEFT_PORT_DDR | 1 << MOTOR_RIGHT_PORT_DDR;
-	MOTOR_DIRECTION_PORT_DDR &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // 0으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT_DDR |= 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3 ;	//출력모드로 설정
-	
-	// 2. 모터를 전진 모드로
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 1 | 1 << 3; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-											 //					0	1	0	1
-}
-
-void backward(int speed) {
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 2 | 1 << 0; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-	
-	OCR1A=OCR1B=speed;
-	
+	MOTOR_PWM_DDR |= (1 << MOTOR_LEFT_PORT_DDR) | (1 << MOTOR_RIGHT_PORT_DDR);
+	MOTOR_DIRECTION_PORT_DDR |= 0x0F;   // PF0~PF3 출력
+	MOTOR_DIRECTION_PORT = (MOTOR_DIRECTION_PORT & ~0x0F) | 0x0A;
 }
 
 void forward(int speed) {
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 1 | 1 << 3; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-	
-	OCR1A=OCR1B=speed;
+	motor_set_direction((1 << 1) | (1 << 3));
+	OCR1A = OCR1B = speed;
+}
+
+void backward(int speed) {
+	motor_set_direction((1 << 0) | (1 << 2));
+	OCR1A = OCR1B = speed;
 }
 
 void turn_right(int speed) {
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 1 | 1 << 3; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-	
-	OCR1A=speed;
-	OCR1B=0;
+	motor_set_direction((1 << 1) | (1 << 3));
+	OCR1A = speed;
+	OCR1B = 0;
 }
 
 void turn_left(int speed) {
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 1 | 1 << 3; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-	
-	OCR1A=0;
-	OCR1B=speed;
+	motor_set_direction((1 << 1) | (1 << 3));
+	OCR1A = 0;
+	OCR1B = speed;
 }
 
 void stop(void) {
-	MOTOR_DIRECTION_PORT &= ~(1 << 0 | 1 << 1 | 1 << 2 | 1 << 3); // ~0 으로 초기화 하고 시작
-	MOTOR_DIRECTION_PORT |= 1 << 0 | 1 << 1 | 1 << 2 | 1 << 3; // 모터를 전진 모드로 IN4IN3IN2IN1 1010
-	
-	OCR1A=0;
-	OCR1B=0;
+	motor_set_direction((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
+	OCR1A = 0;
+	OCR1B = 0;
 }

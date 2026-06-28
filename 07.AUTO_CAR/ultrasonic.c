@@ -9,18 +9,19 @@
 extern volatile int ultrasonic_check_time;
 
 
-volatile int ultrasonic_distance_l = 0;
-volatile int ultrasonic_distance_c = 0;
-volatile int ultrasonic_distance_r = 0;
-volatile char scm[50];
+extern volatile int ultrasonic_distance_l;
+extern volatile int ultrasonic_distance_c;
+extern volatile int ultrasonic_distance_r;
 
 void init_ultrasonic(void); 
 void make_trigger(volatile int pin);
-void ultrasonic_processing(volatile int *flag, volatile int pin);
+void ultrasonic_processing_l(void);
+void ultrasonic_processing_c(void);
+void ultrasonic_processing_r(void);
 
-volatile int flag_l = 1;
-volatile int flag_c = 1;
-volatile int flag_r = 1;
+extern volatile int flag_l;
+extern volatile int flag_c;
+extern volatile int flag_r;
 
 volatile uint16_t start_time_l = 0;
 volatile uint16_t start_time_c = 0;
@@ -41,17 +42,14 @@ ISR (INT4_vect)
 	else // 2. 하강에지
 	{
 		uint16_t clc_time = TCNT3 - start_time_l;	
-		ultrasonic_distance_l = (clc_time * 1000000.0 * 1024 / F_CPU) / 58;
-		flag_l = 1;
+		ultrasonic_distance_l = clc_time * 64;
+		flag_l = 0;
 
-		printf("INT4 : %d cm\r\n", ultrasonic_distance_l);
 	}
 }
 
 ISR(INT5_vect)
 {
-
-	
 	// 1. 상승에지
 	if(ECHO_PORT & (1 << ECHO_PIN_C))
 	{
@@ -60,9 +58,9 @@ ISR(INT5_vect)
 	else // 2. 하강에지
 	{
 		uint16_t clc_time = TCNT3 - start_time_c;
-		ultrasonic_distance_c = (clc_time * 1000000.0 * 1024 / F_CPU) / 58;
-		flag_c = 1; 
-		printf("INT5 : %d cm\r\n", ultrasonic_distance_c);
+		ultrasonic_distance_c = clc_time * 64;
+		flag_c = 0; 
+
 	}
 }
 
@@ -76,9 +74,8 @@ ISR(INT6_vect)
 	else // 2. 하강에지
 	{
 		uint16_t clc_time = TCNT3 - start_time_r;
-		ultrasonic_distance_r = (clc_time * 1000000.0 * 1024 / F_CPU) / 58;	// QnA: 바로 58로 나눠도 같은 결과 나지 않나..? cm로 주는?
-		flag_r = 1;
-		printf("INT6 : %d cm\r\n", ultrasonic_distance_r);
+		ultrasonic_distance_r = clc_time * 64;	// QnA: 바로 58로 나눠도 같은 결과 나지 않나..? cm로 주는?
+		flag_r = 0;
 
 	}
 }
@@ -112,12 +109,26 @@ void make_trigger(volatile int pin)
 	TRIG_PORT &= ~(1 << pin);
 }
 
-void ultrasonic_processing(volatile int *flag, volatile int pin)
+void ultrasonic_processing_l(void)
 {
-	if(*flag == 1){
-		*flag = 0;
-		make_trigger(pin);
-		printf("%s", scm);
+	if(flag_l == 0){
+		flag_l = 1;
+		make_trigger(TRIG_PIN_L);
+	}
+}
 
+void ultrasonic_processing_c(void)
+{
+	if(flag_c == 0){
+		flag_c = 1;
+		make_trigger(TRIG_PIN_C);
+	}
+}
+
+void ultrasonic_processing_r(void)
+{
+	if(flag_r == 0){
+		flag_r = 1;
+		make_trigger(TRIG_PIN_R);
 	}
 }

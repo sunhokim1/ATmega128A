@@ -19,22 +19,21 @@ Author: kccistc*/
 #define FND_DATA_DDR  DDRC
 #define FND_DATA_PORT PORTC
 
-#define 1ST_FND_DIGIT_DDR  DDRC
-#define 1ST_FND_DIGIT_PORT PORTC
-#define 1ST_FND_DIGIT_D1 0
-#define 1ST_FND_DIGIT_D2 1
-#define 1ST_FND_DIGIT_D3 2
-#define 1ST_FND_DIGIT_D4 3
+#define FST_FND_DIGIT_DDR  DDRF
+#define FST_FND_DIGIT_PORT PORTF
+#define FST_FND_DIGIT_D1 4
+#define FST_FND_DIGIT_D2 5
+#define FST_FND_DIGIT_D3 6
+#define FST_FND_DIGIT_D4 7
 
-#define 2ND_FND_DIGIT_DDR  DDRC
-#define 2ND_FND_DIGIT_PORT PORTC
-#define 2ND_FND_DIGIT_D1 4
-#define 2ND_FND_DIGIT_D2 5
-#define 2ND_FND_DIGIT_D3 6
-#define 2ND_FND_DIGIT_D4 7
+#define SND_FND_DIGIT_DDR  DDRG
+#define SND_FND_DIGIT_PORT PORTG
+#define SND_FND_DIGIT_D1 0
+#define SND_FND_DIGIT_D2 1
+#define SND_FND_DIGIT_D3 2 
+#define SND_FND_DIGIT_D4 3
+
+
 
 
 // 여기서 extern이면, .c에 있는 걸 쓸 수 있는 것
-extern volatile uint32_t ms_count;
-extern uint32_t sec_count;
-extern uint32_t dot_display;
