@@ -224,5 +224,6 @@ void setrtc(char *str, t_ds1302 *ds1302) {
 	ds1302->hours = (uint8_t)atoi(hours);
 	ds1302->minutes = (uint8_t)atoi(minutes);
 	ds1302->seconds = (uint8_t)atoi(seconds);
+	
 	init_ds1302(ds1302);
 }

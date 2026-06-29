@@ -808,6 +808,7 @@ void setrtc(char *str, t_ds1302 *ds1302) {
  416:	be d1       	rcall	.+892    	; 0x794 <atoi>
  418:	f8 01       	movw	r30, r16
  41a:	80 83       	st	Z, r24
+	
 	init_ds1302(ds1302);
  41c:	c8 01       	movw	r24, r16
  41e:	31 df       	rcall	.-414    	; 0x282 <init_ds1302>
@@ -1263,18 +1264,17 @@ void pc_command_processing(char **func_name, t_ds1302 *ds1302) {
  6f6:	1c 16       	cp	r1, r28
  6f8:	1d 06       	cpc	r1, r29
  6fa:	34 f6       	brge	.-116    	; 0x688 <pc_command_processing+0x60>
-				fp[i](arg, ds1302);
 				break;
 			}
 		}
 	}
+	//버퍼 초기화
 	front++;
  6fc:	80 91 3c 01 	lds	r24, 0x013C	; 0x80013c <front>
  700:	90 91 3d 01 	lds	r25, 0x013D	; 0x80013d <front+0x1>
  704:	01 96       	adiw	r24, 0x01	; 1
  706:	90 93 3d 01 	sts	0x013D, r25	; 0x80013d <front+0x1>
  70a:	80 93 3c 01 	sts	0x013C, r24	; 0x80013c <front>
-
 	if (front >= strlen(rx_buff))
  70e:	e0 e4       	ldi	r30, 0x40	; 64
  710:	f1 e0       	ldi	r31, 0x01	; 1

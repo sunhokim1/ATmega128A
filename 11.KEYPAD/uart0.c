@@ -6,10 +6,15 @@
  */ 
 
 #include "uart0.h"
-#include "ds1302.h"
+
+//#define FUNC_SU 6
+//extern int func_state;
+//extern void (*fp[]) ();
+
 void init_uart0(void);
 void UART0_transmit(uint8_t data);
-extern void (*fp[])(char*, t_ds1302*);
+//void pc_command_processing(char **led_func_name);
+
 // P278 표12-3
 // PC로부터 1byte가 들어 오면 자동적으로 이곳으로 진입한다.
 // 예) led_all_on\n 이면 11번 이곳으로 진입한다.
@@ -19,16 +24,16 @@ ISR(USART0_RX_vect) {
 	
 	data = UDR0; // UDR0의 내용이 data에 복사된다.
 	
-	if ((rear+1) % QUEUE_SIZE == front % QUEUE_SIZE) // queue full
+	if ((u_rear+1) % QUEUE_SIZE == u_front % QUEUE_SIZE) // queue full
 		return ;
 		
 	if (data == '\n' || data == '\r') {
-		rx_buff[rear][i] = '\0'; // 문장의 끝인 NULL을 넣는다.
+		rx_buff[u_rear][i] = '\0'; // 문장의 끝인 NULL을 넣는다.
 		i=0; // 다음 string을 저장하기 위해서 i를 0으로 만든다.
-		rear = (rear + 1) % QUEUE_SIZE; // 0~9
+		u_rear = (u_rear + 1) % QUEUE_SIZE; // 0~9
 	}else {
 		
-		rx_buff[rear][i++] = data;
+		rx_buff[u_rear][i++] = data;
 	}
 }
 /*
@@ -38,7 +43,7 @@ ISR(USART0_RX_vect) {
 	TX(전송) : polling으로 처리한다.
 	RX(수신) : interrupt로 처리한다.
 */
-void init_uart0(void){
+void init_uart0(void) {
 	// 1. 전송속도 : 9600bps
 	UBRR0H = 0x00;
 	UBRR0L = 207; // 9600bps 표 8-9
@@ -55,20 +60,16 @@ void UART0_transmit(uint8_t data) {
 	UDR0 = data; // HW 전송 register에 data를 송신한다.
 }
 
-void pc_command_processing(char **func_name, t_ds1302 *ds1302) {
-	if (front != rear) {
-		printf("%s", rx_buff[front]);
-
-		for (int i = 0; i < 1; i++) {
-			if (strncmp(rx_buff[front], func_name[i], strlen(func_name[i])) == 0) {
-				char *arg = rx_buff[front] + strlen(func_name[i]);
-				fp[i](arg, ds1302);
-				break;
-			}
-		}
+void pc_command_processing(char **led_func_name) {
+	if (u_front != u_rear) { // data
+		printf("%s", rx_buff[u_front]);
+		//FOR (INT I=0;I<FUNC_SU;I++) {
+			//IF(STRNCMP(RX_BUFF[U_FRONT], LED_FUNC_NAME[I], STRLEN(LED_FUNC_NAME[I])) == 0) {
+				////FUNC_STATE = I;
+				//BREAK;
+			//}
+		//}
 	}
-	//버퍼 초기화
-	front++;
-	if (front >= strlen(rx_buff))
-		front = 0;
+	
+	//fp[func_state]();
 }
